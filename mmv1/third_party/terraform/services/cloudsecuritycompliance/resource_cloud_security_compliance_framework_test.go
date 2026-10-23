@@ -89,6 +89,14 @@ func TestAccCloudSecurityComplianceFramework_update(t *testing.T) {
 				Config:   testAccCloudSecurityComplianceFramework_reorder(context),
 				PlanOnly: true,
 			},
+			{
+				Config: testAccCloudSecurityComplianceFramework_updateParametersOnly(context),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("google_cloud_security_compliance_framework.example", plancheck.ResourceActionUpdate),
+					},
+				},
+			},
 		},
 	})
 }
@@ -119,7 +127,7 @@ resource "google_cloud_security_compliance_framework" "example" {
 
   cloud_control_details {
     name              = "organizations/%{org_id}/locations/global/cloudControls/builtin-assess-resource-availability"
-    major_revision_id = "1"
+    major_revision_id = "2"
     
     parameters {
       name = "location"
@@ -193,7 +201,7 @@ resource "google_cloud_security_compliance_framework" "example" {
   
   cloud_control_details {
     name              = "organizations/%{org_id}/locations/global/cloudControls/builtin-assess-resource-availability"
-    major_revision_id = "1"
+    major_revision_id = "2"
     
     parameters {
       name = "location"
@@ -213,6 +221,45 @@ resource "google_cloud_security_compliance_framework" "example" {
         string_list_value {
           values = ["us-central1"]
         }
+      }
+    }
+  }
+}
+`, context)
+}
+
+func testAccCloudSecurityComplianceFramework_updateParametersOnly(context map[string]interface{}) string {
+	return acctest.Nprintf(`
+resource "google_cloud_security_compliance_framework" "example" {
+  parent       = "organizations/%{org_id}"
+  location     = "global"
+  framework_id = "tf-test-example-framework%{random_suffix}"
+  
+  display_name = "Updated Terraform Framework Name"
+  description  = "An updated description for the framework with additional details"
+  
+  cloud_control_details {
+    name              = "organizations/%{org_id}/locations/global/cloudControls/builtin-cmek-key-in-use-for-bigquery-table"
+    major_revision_id = "1"
+    
+    parameters {
+      name = "location"
+      parameter_value {
+        string_list_value {
+          values = ["us-central1", "us-west1"]
+        }
+      }
+    }
+  }
+
+  cloud_control_details {
+    name              = "organizations/%{org_id}/locations/global/cloudControls/builtin-assess-resource-availability"
+    major_revision_id = "2"
+    
+    parameters {
+      name = "location"
+      parameter_value {
+        string_value = "us-west1"
       }
     }
   }
